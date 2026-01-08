@@ -1,34 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-app
+  name: nodejs-k8s
   labels:
-    app: node-app
+    app: nodejs-k8s
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
-      app: node-app
+      app: nodejs-k8s
   template:
     metadata:
       labels:
-        app: node-app
+        app: nodejs-k8s
     spec:
       containers:
-        - name: node-app
-          image: nodejs-k8s          # local image name
-          imagePullPolicy: Never     # local images
+        - name: nodejs-k8s
+          image: sadeeee/nodejs-k8s:1.0
           ports:
             - containerPort: 3000
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 5
