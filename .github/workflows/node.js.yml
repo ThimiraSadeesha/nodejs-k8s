@@ -37,11 +37,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-      - name: Check coverage
-        if: always()
-        run: |
-          if [ -f coverage/coverage-summary.json ]; then
-            echo "✅ Coverage report generated"
-          else
-            echo "⚠️ No coverage report found"
