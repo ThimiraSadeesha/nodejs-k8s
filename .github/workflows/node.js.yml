@@ -38,14 +38,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Upload coverage reports
-        if: matrix.node-version == '18.x'
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-${{ matrix.node-version }}
-          path: coverage/
-          retention-days: 30
-
       - name: Check coverage
         if: always()
         run: |
