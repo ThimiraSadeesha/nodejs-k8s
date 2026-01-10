@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as os from 'os';
 import { monitorEventLoopDelay } from 'perf_hooks';
 
+type ProcessInternals = {
+    _getActiveHandles?: () => unknown[];
+    _getActiveRequests?: () => unknown[];
+};
+
 @Injectable()
 export class AppService {
     private readonly eventLoopMonitor = monitorEventLoopDelay({ resolution: 10 });
@@ -10,7 +15,6 @@ export class AppService {
         this.eventLoopMonitor.enable();
     }
 
-
     getHealth(): { status: string; uptime: number } {
         return {
             status: 'ok',
@@ -18,22 +22,19 @@ export class AppService {
         };
     }
 
-
     getCpuInfo(): {
         cores: number;
         model: string;
         speed: number;
         usage: number;
     }[] {
-        const cpus = os.cpus();
-        return cpus.map((cpu) => ({
+        return os.cpus().map((cpu) => ({
             cores: 1,
             model: cpu.model,
             speed: cpu.speed,
-            usage: 0, // placeholder for real-time usage
+            usage: 0, // placeholder
         }));
     }
-
 
     getMemoryInfo(): {
         rss: number;
@@ -45,6 +46,7 @@ export class AppService {
         totalMemory: number;
     } {
         const memUsage = process.memoryUsage();
+
         return {
             rss: memUsage.rss,
             heapTotal: memUsage.heapTotal,
@@ -56,7 +58,6 @@ export class AppService {
         };
     }
 
-
     getEventLoopInfo(): {
         min: number;
         max: number;
@@ -64,6 +65,7 @@ export class AppService {
         stddev: number;
     } {
         const h = this.eventLoopMonitor;
+
         return {
             min: h.min / 1e6,
             max: h.max / 1e6,
@@ -81,12 +83,19 @@ export class AppService {
     } {
         let activeHandles = 0;
         let activeRequests = 0;
-        try {
-            const proc = process as any;
-            activeHandles = proc._getActiveHandles()?.length || 0;
-            activeRequests = proc._getActiveRequests()?.length || 0;
-        } catch {
 
+        try {
+            const proc = process as unknown as ProcessInternals;
+
+            if (typeof proc._getActiveHandles === 'function') {
+                activeHandles = proc._getActiveHandles().length;
+            }
+
+            if (typeof proc._getActiveRequests === 'function') {
+                activeRequests = proc._getActiveRequests().length;
+            }
+        } catch {
+            // ignore – private Node APIs may not exist
         }
 
         return {
@@ -97,7 +106,6 @@ export class AppService {
             activeRequests,
         };
     }
-
 
     getSystemInfo() {
         return {
