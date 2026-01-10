@@ -95,11 +95,13 @@ jobs:
 
       - name: Extract image tag
         id: version
+        shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           else
             echo "tag=development" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
